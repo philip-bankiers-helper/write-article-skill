@@ -26,7 +26,7 @@ The skill never silently downgrades an image-lane asset to another medium: if co
 ### As a plugin (recommended)
 
 ```text
-/plugin marketplace add <your-github-username>/write-article-skill
+/plugin marketplace add philip-bankiers-helper/write-article-skill
 /plugin install write-article@write-article-skill
 ```
 
@@ -35,7 +35,7 @@ Start a new session so the skill list refreshes.
 ### By copying the skill folder
 
 ```bash
-git clone https://github.com/<your-github-username>/write-article-skill.git
+git clone https://github.com/philip-bankiers-helper/write-article-skill.git
 cp -R write-article-skill/skills/write-article ~/.claude/skills/
 ```
 
@@ -102,10 +102,9 @@ Scripts are referenced from `SKILL.md` via `${CLAUDE_SKILL_DIR}` so they resolve
 - **A generated image has invented or wrong text** — expected occasionally; the skill's read-back catches it and re-runs the image as an edit (not a re-roll) to strip it. See `references/image-craft.md`.
 - **Shell execution disabled by policy** — some managed environments disable skill shell execution; the script-driven lanes won't run there.
 
-## Before you publish this repo
+## Status
 
-- Replace `<your-github-username>` in this README with your GitHub path.
-- The `LICENSE` and `.claude-plugin/marketplace.json` use a neutral maintainer name; personalize them if you want your name on the release.
+This repo is **private** while under review. See [PRERELEASE.md](PRERELEASE.md) for how to try it, what's verified, and what to fill in before making it public. The `LICENSE` and `.claude-plugin/marketplace.json` use a neutral maintainer name; personalize them if you want your name on the release.
 
 ## Credits
 
