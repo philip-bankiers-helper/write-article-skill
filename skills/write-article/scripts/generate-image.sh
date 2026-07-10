@@ -112,5 +112,17 @@ with open(out, 'wb') as f:
 print(f'extracted {len(data)} bytes from image_gen tool output')
 PY
 
-DIMS="$(sips -g pixelWidth -g pixelHeight "$OUT_ABS" 2>/dev/null | awk '/pixelWidth/{w=$2} /pixelHeight/{h=$2} END{printf "%sx%s", w, h}')"
-echo "generated $OUT_ABS (${DIMS} px)"
+# Portable PNG dimensions: macOS sips, else python3 (reads the IHDR chunk), else "?".
+png_dims() {
+  if command -v sips >/dev/null 2>&1; then
+    sips -g pixelWidth -g pixelHeight "$1" 2>/dev/null \
+      | awk '/pixelWidth/{w=$2} /pixelHeight/{h=$2} END{if(w&&h)printf "%sx%s",w,h; else printf "?"}'
+  else
+    python3 - "$1" <<'PY'
+import struct, sys
+d = open(sys.argv[1], "rb").read(24)
+sys.stdout.write("%dx%d" % struct.unpack(">II", d[16:24]) if d[:8] == b"\x89PNG\r\n\x1a\n" else "?")
+PY
+  fi
+}
+echo "generated $OUT_ABS ($(png_dims "$OUT_ABS") px)"

@@ -1,38 +1,49 @@
-# write-article-skill
+# write-article
 
-A Claude Code skill that takes a technical article from idea to a publishable bundle: spec, prose, diagrams, banner, and title, with every asset generated, rendered, and reviewed before you see it.
+A [Claude Code](https://claude.com/claude-code) skill that takes a technical article from idea to a publishable bundle: spec, prose, diagrams, banner, and title, with every asset generated, rendered, and reviewed before you see it.
 
 Two asset lanes, chosen per diagram by one mechanical rule:
 
-- **HTML lane** — anything carrying verbatim code, IR, instruction names, or exact numbers is authored as fixed-size HTML in the dark Slate house style and rendered to a 2× PNG through headless Chrome. Pixel-exact text, always.
-- **Image lane** — the banner and concept diagrams are generated with **gpt-image-2 through the codex CLI**, using a committed house look from a five-look aesthetic library so nothing ever lands on the generic neon-card attractor.
+- **HTML lane** — anything carrying verbatim code, IR, instruction names, or exact numbers is authored as fixed-size HTML in a dark "Slate" house style and rendered to a 2× PNG through headless Chrome. Pixel-exact text, always.
+- **Image lane** — the banner and concept diagrams are generated with **gpt-image-2 through the codex CLI**, using a committed house look from a five-look aesthetic library so nothing lands on the generic neon-card attractor.
 
-The pipeline has one human gate (spec approval, skipped when your request already contains thesis and audience) and ends with a mandatory three-pass review: full read-through, a [humanizer](https://github.com/blader/humanizer) audit, and a publishing checklist.
+The pipeline has one human gate (spec approval, skipped when your request already contains thesis and audience) and ends with a mandatory three-pass review: full read-through, a voice/[humanizer](https://github.com/blader/humanizer) audit, and a publishing checklist.
 
 ## Requirements
 
-- [Claude Code](https://claude.com/claude-code)
-- [codex CLI](https://github.com/openai/codex), authenticated, with built-in gpt-image-2 image generation (comes with Codex plans) — image lane
-- Google Chrome (or Chromium/Edge) — HTML diagram rendering
-- [humanizer](https://github.com/blader/humanizer) skill, recommended: `npx skills add blader/humanizer` — review-phase voice audit
+| Tool | Used for | If missing |
+| --- | --- | --- |
+| [Claude Code](https://claude.com/claude-code) | runs the skill | required |
+| [codex CLI](https://github.com/openai/codex), authenticated, with built-in gpt-image-2 (ships with Codex plans) | image lane | prompts saved, assets marked **pending**, pipeline still completes |
+| Google Chrome / Chromium / Edge | HTML diagram rendering | HTML lane fails; set `CHROME_BIN` to override the binary path |
+| `python3` | extracting image bytes, reading PNG sizes | required for the image lane |
+| [humanizer](https://github.com/blader/humanizer) skill (`npx skills add blader/humanizer`) | review-phase voice audit | falls back to the built-in `voice.md` checklist |
 
-If codex is unavailable at run time the pipeline still completes: image prompts are saved and those assets are marked pending, never silently downgraded.
+The skill never silently downgrades an image-lane asset to another medium: if codex is unavailable, the prompt is kept and the asset is flagged pending.
 
 ## Install
 
-```bash
-git clone <this-repo> write-article-skill
-cd write-article-skill
-cp -R .claude/skills/write-article ~/.claude/skills/
+### As a plugin (recommended)
+
+```text
+/plugin marketplace add <your-github-username>/write-article-skill
+/plugin install write-article@write-article-skill
 ```
 
-Or symlink instead of copy to make the clone canonical and updates a plain `git pull`:
+Start a new session so the skill list refreshes.
+
+### By copying the skill folder
 
 ```bash
-ln -s "$(pwd)/.claude/skills/write-article" ~/.claude/skills/write-article
+git clone https://github.com/<your-github-username>/write-article-skill.git
+cp -R write-article-skill/skills/write-article ~/.claude/skills/
 ```
 
-Start a new Claude Code session so the skill list refreshes.
+Or symlink instead of copy so updates are a plain `git pull`:
+
+```bash
+ln -s "$(pwd)/write-article-skill/skills/write-article" ~/.claude/skills/write-article
+```
 
 ## Verify
 
@@ -46,7 +57,7 @@ write an article about <idea>, grounded in <repo or files>, for <platform>
 
 Give it thesis and audience up front and it skips the spec gate and runs straight through. Partial entry works too: "make the diagrams for this draft", "review this article", "redo the banner".
 
-Everything for one article lands in a self-contained folder:
+Everything for one article lands in a self-contained folder in *your* project (never in this repo):
 
 ```
 articles/<slug>/
@@ -58,24 +69,44 @@ articles/<slug>/
     banner-prompt.md / banner.png
 ```
 
+## Permissions
+
+The skill runs the codex CLI and headless Chrome via its two `scripts/`, and reads/writes files in your project. Claude Code will prompt for these the first time. To reduce prompts, allow the script invocations and the codex/Chrome commands in your project or user settings, or add an `allowed-tools` line to the skill's frontmatter for your own install.
+
 ## Layout
 
 ```
-.claude/skills/write-article/
-  SKILL.md                   ← the pipeline: 8 phases, lane rule, gates
-  references/
-    voice.md                 ← generative voice canon (wins over humanizer on conflict)
-    html-diagrams.md         ← Slate house style, render + read-back loop
-    image-craft.md           ← gpt-image-2 craft system: 5 house looks, prompt format, lever policy
-  scripts/
-    render-html.sh           ← headless Chrome, 2× device scale
-    generate-image.sh        ← codex exec render lane
+write-article-skill/
+  .claude-plugin/
+    plugin.json              ← plugin manifest (marketplace install)
+    marketplace.json         ← marketplace catalog
+  skills/write-article/
+    SKILL.md                 ← the pipeline: 8 phases, lane rule, gates
+    references/
+      voice.md               ← generative voice canon (wins over humanizer on conflict)
+      html-diagrams.md       ← Slate house style, render + read-back loop
+      image-craft.md         ← gpt-image-2 craft system: 5 house looks, prompt format, lever policy
+    scripts/
+      render-html.sh         ← headless Chrome, 2× device scale
+      generate-image.sh      ← codex exec render lane (extracts bytes from the session log)
+  README.md
+  LICENSE
 ```
 
-## Updating
+Scripts are referenced from `SKILL.md` via `${CLAUDE_SKILL_DIR}` so they resolve whether the skill is installed by copy, symlink, or plugin cache.
 
-`git pull`, then re-copy (or nothing, if you symlinked).
+## Troubleshooting
 
-## Supersedes
+- **"codex CLI not found" / assets marked pending** — install and authenticate the codex CLI; confirm `codex exec` works and your plan includes gpt-image-2.
+- **"no Chrome/Chromium/Edge found"** — install a Chromium-family browser, or set `CHROME_BIN=/path/to/chrome`.
+- **A generated image has invented or wrong text** — expected occasionally; the skill's read-back catches it and re-runs the image as an edit (not a re-roll) to strip it. See `references/image-craft.md`.
+- **Shell execution disabled by policy** — some managed environments disable skill shell execution; the script-driven lanes won't run there.
 
-The three memory files this grew from — *Article Writing Process*, *Diagram Design Principles*, *Writing Voice Rules* — are superseded. If you installed them in a `~/.claude/projects/*/memory/` directory, remove them; this skill is canonical.
+## Before you publish this repo
+
+- Replace `<your-github-username>` in this README with your GitHub path.
+- The `LICENSE` and `.claude-plugin/marketplace.json` use a neutral maintainer name; personalize them if you want your name on the release.
+
+## Credits
+
+The gpt-image-2 craft system is adapted from the visual-craft rework of [philipbankier/codex-image-skill](https://github.com/philipbankier/codex-image-skill). The review-phase voice audit integrates [blader/humanizer](https://github.com/blader/humanizer).

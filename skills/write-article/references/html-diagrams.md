@@ -42,7 +42,7 @@ The house style, self-contained. No other article's diagrams needed as reference
 ## Render and read back
 
 ```
-scripts/render-html.sh assets/01-<name>.html assets/01-<name>.png 860 <height>
+${CLAUDE_SKILL_DIR}/scripts/render-html.sh assets/01-<name>.html assets/01-<name>.png 860 <height>
 ```
 
 Renders at 2× device scale (a 1720px-wide PNG) through headless Chrome. Then **read the PNG file** — not the HTML — and check:

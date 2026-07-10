@@ -21,12 +21,16 @@ H="$4"
 
 CHROME=""
 for c in \
+  "${CHROME_BIN:-}" \
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
   "/Applications/Chromium.app/Contents/MacOS/Chromium" \
-  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"; do
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
+  google-chrome google-chrome-stable chromium chromium-browser microsoft-edge; do
+  [ -n "$c" ] || continue
   if [ -x "$c" ]; then CHROME="$c"; break; fi
+  if command -v "$c" >/dev/null 2>&1; then CHROME="$(command -v "$c")"; break; fi
 done
-[ -n "$CHROME" ] || { echo "no Chrome/Chromium/Edge found" >&2; exit 1; }
+[ -n "$CHROME" ] || { echo "no Chrome/Chromium/Edge found (set CHROME_BIN to override)" >&2; exit 1; }
 
 PROFILE="$(mktemp -d)"
 CHROME_PID=""
@@ -69,5 +73,19 @@ CHROME_PID=""
 
 [ -s "$OUT" ] || { echo "render failed: $OUT missing or empty after 30s" >&2; exit 1; }
 
-DIMS="$(sips -g pixelWidth -g pixelHeight "$OUT" 2>/dev/null | awk '/pixelWidth/{w=$2} /pixelHeight/{h=$2} END{printf "%sx%s", w, h}')"
-echo "rendered $OUT (${DIMS} px)"
+# Portable PNG dimensions: macOS sips, else python3 (reads the IHDR chunk), else "?".
+png_dims() {
+  if command -v sips >/dev/null 2>&1; then
+    sips -g pixelWidth -g pixelHeight "$1" 2>/dev/null \
+      | awk '/pixelWidth/{w=$2} /pixelHeight/{h=$2} END{if(w&&h)printf "%sx%s",w,h; else printf "?"}'
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 - "$1" <<'PY'
+import struct, sys
+d = open(sys.argv[1], "rb").read(24)
+sys.stdout.write("%dx%d" % struct.unpack(">II", d[16:24]) if d[:8] == b"\x89PNG\r\n\x1a\n" else "?")
+PY
+  else
+    printf "?"
+  fi
+}
+echo "rendered $OUT ($(png_dims "$OUT") px)"

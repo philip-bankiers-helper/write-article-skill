@@ -2,7 +2,7 @@
 
 ## Contract
 
-You author the complete prompt file with full article context; codex is a thin render executor. `scripts/generate-image.sh` extracts the `## Final Generation Prompt` section of your prompt file and has codex's built-in gpt-image-2 render it. Nothing else in the file reaches the model.
+You author the complete prompt file with full article context; codex is a thin render executor. `${CLAUDE_SKILL_DIR}/scripts/generate-image.sh` extracts the `## Final Generation Prompt` section of your prompt file and has codex's built-in gpt-image-2 render it. Nothing else in the file reaches the model.
 
 gpt-image-2 renders exactly one thing: the literal text of the Final Generation Prompt. Any art direction that doesn't reach that string changes zero pixels. And a style-silent prompt is not neutral — the bare word "infographic" lands on the model's default attractor: flat neon-on-charcoal vector cards, evenly weighted boxes, and arrows. You beat the attractor by committing to a strong positive look, never by listing what to avoid.
 
@@ -101,7 +101,7 @@ One `NN-<name>-prompt.md` (or `banner-prompt.md`) per asset, kept forever so re-
 ## Generate, read back, retry once
 
 ```
-scripts/generate-image.sh assets/02-<name>-prompt.md assets/02-<name>.png 1536x1024
+${CLAUDE_SKILL_DIR}/scripts/generate-image.sh assets/02-<name>-prompt.md assets/02-<name>.png 1536x1024
 ```
 
 The script extracts the PNG bytes from the codex session log — the image_gen tool's own recorded output — so a lazy executor can't substitute a stale or edited file; if the tool was never called, the script fails non-zero. Treat that as a generation failure (prompt saved, asset pending). The tool honors the requested aspect ratio but treats exact pixel dimensions as advisory; judge composition at read-back, not pixel counts.
@@ -110,13 +110,14 @@ Then **read the PNG** and gate it:
 
 - main subject present; the look committed (not the neon-card attractor, not generic stock)
 - every P0 string exact — check each glyph; a silent one-character typo is this lane's failure mode
+- **no invented text.** gpt-image-2 loves to fill an infographic with authentic-looking detail you never wrote: spec boxes, dimension callouts, part numbers, captions. That text is frequently wrong on facts (in testing it labeled a model "LLaMA 2 7B" when the real system used `claude-opus-4-5`), and a wrong verbatim string in a technical diagram is worse than no diagram. Read every glyph the model added, not only the strings you specified. Any invented or wrong text fails the gate and goes to the edit-retry below to be stripped.
 - no label soup, no invented claims or metrics, no duplicated text
 - crop and register match the request; a focal idea reads within 2 seconds
 
 One retry budget per asset, and it's a true edit, not a re-roll: append a `## Retry Delta` section to the prompt file — `Change:` the single flaw, with the exact corrected string if it's text; `Preserve:` layout, headline glyphs, palette, lighting, material and texture, and all other labels, restated in full — then re-run with the previous frame as the fourth argument:
 
 ```
-scripts/generate-image.sh assets/02-<name>-prompt.md assets/02-<name>-v2.png 1536x1024 assets/02-<name>.png
+${CLAUDE_SKILL_DIR}/scripts/generate-image.sh assets/02-<name>-prompt.md assets/02-<name>-v2.png 1536x1024 assets/02-<name>.png
 ```
 
 The previous PNG is attached as the edit input, so the composition genuinely survives. Write the retry to a versioned filename, judge it at read-back, and keep whichever frame is better (rename the winner into place). If the retry still fails, keep the best frame and report the remaining flaw in Review.

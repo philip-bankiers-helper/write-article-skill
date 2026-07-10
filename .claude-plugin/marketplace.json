@@ -1,0 +1,13 @@
+{
+  "name": "write-article-skill",
+  "owner": {
+    "name": "write-article-skill maintainers"
+  },
+  "plugins": [
+    {
+      "name": "write-article",
+      "source": "./",
+      "description": "Idea to publishable technical article with all assets, using gpt-image-2 via the codex CLI and headless-Chrome-rendered HTML diagrams."
+    }
+  ]
+}

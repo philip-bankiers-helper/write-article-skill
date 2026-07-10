@@ -1,0 +1,6 @@
+{
+  "name": "write-article",
+  "description": "Idea to publishable technical article with all assets: spec, prose, diagrams, banner, and title. Dark-theme HTML diagrams rendered to PNG, plus gpt-image-2 visuals generated through the codex CLI.",
+  "version": "0.1.0",
+  "keywords": ["writing", "articles", "technical-writing", "diagrams", "gpt-image-2", "codex"]
+}

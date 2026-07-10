@@ -1,0 +1,13 @@
+# Generated article bundles live in the user's project, never in this repo.
+articles/
+blog/
+
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+
+# Scratch and logs
+*.log
+*.tmp
+tmp/

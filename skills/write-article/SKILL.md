@@ -73,8 +73,8 @@ Done when: every spec section is written and the only placeholders left are imag
 
 For each diagram in spec order, by lane:
 
-- **HTML lane:** author the fixed-size HTML per `references/html-diagrams.md`, render with `scripts/render-html.sh`, then read the rendered PNG and check it against the read-back checklist. Budget 2–3 passes; the third pass fixes the thing you can't see until the render.
-- **Image lane:** author `NN-<name>-prompt.md` per `references/image-craft.md`, generate with `scripts/generate-image.sh`, read the PNG back against the gates. One retry, and it's an edit, not a re-roll: append a Retry Delta to the prompt file and re-run the script with the previous PNG as the fourth argument, so the good composition survives.
+- **HTML lane:** author the fixed-size HTML per `references/html-diagrams.md`, render with `${CLAUDE_SKILL_DIR}/scripts/render-html.sh`, then read the rendered PNG and check it against the read-back checklist. Budget 2–3 passes; the third pass fixes the thing you can't see until the render.
+- **Image lane:** author `NN-<name>-prompt.md` per `references/image-craft.md`, generate with `${CLAUDE_SKILL_DIR}/scripts/generate-image.sh`, read the PNG back against the gates. gpt-image-2 routinely adds text you never asked for (spec boxes, dimension callouts, captions), and that invented text is often wrong: in testing it labeled a model "LLaMA 2 7B" for a system that used `claude-opus-4-5`. Read every glyph in the image, not just your P0 strings. Any invented or wrong text fails read-back. One retry, and it's an edit, not a re-roll: append a Retry Delta to the prompt file and re-run the script with the previous PNG as the fourth argument, so the good composition survives.
 
 Done when: every diagram in the spec has a final PNG that passed read-back.
 
@@ -93,9 +93,10 @@ Three passes, none optional, none a skim:
 1. **Full read** of `article.md` top to bottom: accuracy against the grounding inventory, flow between sections, flow within sections, and the ending lands.
 2. **Humanizer audit:** invoke the `humanizer` skill on the draft if it's installed; otherwise apply the checklist in `references/voice.md`. Where humanizer and the voice canon conflict, the canon wins.
 3. **Publishing checklist**, every line:
-   - `grep — article.md` finds no em dashes in prose (code blocks exempt)
+   - `grep '—' article.md` finds no em dashes in prose (code blocks exempt)
    - no "This is not X; it is Y" constructions
    - no trailing summary paragraphs restating what was just said
+   - every quoted string is verbatim from the grounding inventory (no reconstructed or paraphrased text wrapped in quotation marks; drop the quotes or make the quote exact). A fabricated "quote" is the fastest way to lose a specificity-driven piece.
    - all headings are `##` / `###`
    - every `**[INSERT IMAGE: …]**` marker names a file that exists in `assets/`, or is explicitly listed as pending with its prompt file saved
    - banner exists and passed read-back, or is listed as pending (prompt saved)
