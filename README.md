@@ -2,6 +2,8 @@
 
 A [Claude Code](https://claude.com/claude-code) skill that takes a technical article from idea to a publishable bundle: spec, prose, diagrams, banner, and title, with every asset generated, rendered, and reviewed before you see it.
 
+![write-article running the eight-phase pipeline from one prompt to a finished article bundle](docs/demo.gif)
+
 Two asset lanes, chosen per diagram by one mechanical rule:
 
 - **HTML lane** — anything carrying verbatim code, IR, instruction names, or exact numbers is authored as fixed-size HTML in a dark "Slate" house style and rendered to a 2× PNG through headless Chrome. Pixel-exact text, always.
