@@ -25,7 +25,9 @@ The skill never silently downgrades an image-lane asset to another medium: if co
 
 ## Install
 
-### As a plugin (recommended)
+Full walkthrough in [INSTALL.md](INSTALL.md), including prerequisites and a smoke test.
+
+### As a plugin
 
 ```text
 /plugin marketplace add philip-bankiers-helper/write-article-skill
@@ -91,6 +93,7 @@ write-article-skill/
     scripts/
       render-html.sh         ← headless Chrome, 2× device scale
       generate-image.sh      ← codex exec render lane (extracts bytes from the session log)
+  INSTALL.md               ← install, prerequisites, smoke test
   README.md
   LICENSE
 ```
@@ -106,7 +109,11 @@ Scripts are referenced from `SKILL.md` via `${CLAUDE_SKILL_DIR}` so they resolve
 
 ## Status
 
-This repo is **private** while under review. See [PRERELEASE.md](PRERELEASE.md) for how to try it, what's verified, and what to fill in before making it public. The `LICENSE` and `.claude-plugin/marketplace.json` use a neutral maintainer name; personalize them if you want your name on the release.
+Pre-release, shared for feedback. Verified end to end on macOS: grounding, spec gate, prose, both asset lanes, and the three-pass review, including the edit-retry that fixes a bad image without a full re-roll. Not yet verified: Linux, and the `/plugin marketplace add` round-trip from a clean machine — folder-copy is the safe install path.
+
+Feedback worth sending back: whether the spec gate fires when it should and skips cleanly when your request already has thesis and audience, whether the HTML-vs-image lane routing picks the right lane per diagram, whether the prose reads like a person wrote it, and any install friction.
+
+Maintainer notes (repo visibility, pre-public checklist) are in [PRERELEASE.md](PRERELEASE.md).
 
 ## Credits
 
